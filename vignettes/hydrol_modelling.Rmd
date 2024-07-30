@@ -21,7 +21,7 @@ library(hydrologicalModelling)
 # Introduction
 
 This vignette demonstrates how to use the `hydroModelling` package for hydrological data analysis and visualization.
-Hydrological modeling involves the study of water flow and its distribution in a given area. The hydroModelling package provides tools to load, process, and visualize Digital Elevation Model (DEM) data, and perform hydrological analysis such as flow accumulation and watershed delineation.
+Hydrological modeling involves the study of water flow and its distribution in a given area. The hydroModelling package provides tools to load, process, and visualize Digital Elevation Model (DEM) data, and perform hydrological analysis such as flow accumulation and watershed delineations.
 
 # Motivation
 
