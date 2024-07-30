@@ -1,0 +1,23 @@
+Package: hydrologicalModelling
+Title: Advanced Tools for Hydrological Modelling
+Version: 0.0.0.9000
+Authors@R: 
+    person("Eric", "Musonera", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Provides advanced tools for hydrological modelling, including functionalities for 
+    snapping pour points to stream rasters, handling spatial data, and visualizing hydrological 
+    features. The package integrates various methods and tools from spatial and hydrological 
+    analyses to facilitate robust and efficient modelling processes.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: 
+    sf,
+    terra,
+    tmap,
+    whitebox
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

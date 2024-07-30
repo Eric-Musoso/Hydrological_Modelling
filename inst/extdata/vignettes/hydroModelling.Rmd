@@ -1,0 +1,158 @@
+---
+title: "Hydrological Data Analysis with hydroModelling"
+author: "Eric Musonera"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Hydrological Data Analysis with hydroModelling}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+# Introduction
+
+This vignette demonstrates how to use the `hydroModelling` package for hydrological data analysis and visualization.
+Hydrological modeling involves the study of water flow and its distribution in a given area. The hydroModelling package provides tools to load, process, and visualize Digital Elevation Model (DEM) data, and perform hydrological analysis such as flow accumulation and watershed delineation.
+
+# Motivation
+
+Accurate hydrological modeling is essential for water resource management, flood prediction, and environmental protection. This package aims to simplify the process of working with DEM data and performing essential hydrological analyses in R.
+
+# Data Description and Exploration
+
+For this demonstration, we'll use a sample DEM file included with the package. We'll load this data, apply some preprocessing steps, and visualize it.
+
+## Load DEM Data
+First, we'll load the DEM data and set the Coordinate Reference System (CRS).
+
+```{r setup}
+library(hydroModelling)
+dem_path <- system.file("extdata", "demRw.tif", package = "hydroModelling")
+dem <- load_and_set_crs(dem_path)
+```
+
+## Apply Threshold
+Next, we'll apply a threshold to the DEM data to filter out lower elevation values.
+
+```{r}
+threshold <- 923.667
+dem_thresholded <- apply_threshold(dem, threshold)
+```
+
+## Plot DEM
+We'll visualize the DEM data with the applied threshold using the tmap package.
+
+```{r}
+plot_dem(dem_thresholded)
+```
+
+# Analysis
+
+## Generate Hillshade
+
+We'll generate a hillshade from the DEM to enhance the visualization of terrain features.
+
+```{r}
+hillshade_path <- generate_hillshade(dem_thresholded)
+hillshade <- terra::rast(hillshade_path)
+```
+
+## Plot hillshade
+
+Now we are going to visualize our hillshade.
+
+```{r}
+plot_hillshade(hillshade_path)
+```
+
+## Fill Depressions
+
+Depressions in the hillshade DEM will be filled to create a more accurate flow model.
+
+```{r}
+filled_dem_path <- fill_hillshade(hillshade_path)
+filled_dem <- terra::rast(filled_dem_path)
+```
+
+## D8 Flow Accumulation and Pointers
+
+We'll compute the D8 flow accumulation and pointers from the filled DEM.
+
+```{r}
+flow_acc_output_path <- tempfile(fileext = ".tif")
+pointer_output_path <- tempfile(fileext = ".tif")
+
+flow_result <- flow_acc_and_pointer(
+  dem_path = hillshade_path,
+  filled_hillshade_path = filled_dem_path,
+  flow_acc_output_path = flow_acc_output_path,
+  pointer_output_path = pointer_output_path
+)
+flow_acc <- terra::rast(flow_result$flow_acc_output)
+```
+
+## Extract Streams
+
+Streams will be extracted from the flow accumulation raster using a specified threshold
+
+```{r}
+streams_path <- extract_streams(flow_accum_path = flow_acc_output_path, threshold = 6000)
+streams <- terra::rast(streams_path)
+
+```
+
+## Snap pour points to stream network.
+We snap our pour points data to stream network to avoid any error that should occur when we use our original pour point which were not clearly attached to stream networks.
+
+
+```{r}
+snapped_pp_path <- snap_pour_points(
+  pour_pts_path = system.file("extdata", "pourpoints.shp", package = "hydroModelling"),
+  streams_path = system.file("extdata", "raster_streams.tif", package = "hydroModelling")
+)
+
+```
+
+## Plot stream and snapped pour point
+We'll visualize the stream networks along with pour points.
+
+```{r}
+plot_streams_and_pour_points(streams_path = streams_path, snapped_pp_path = system.file("extdata", "snappedpp.shp", package = "hydroModelling"))
+```
+
+
+## Watershed Delineation
+
+Finally, we will demonstrate the watershed delineation using the compute_watersheds function.
+
+```{r}
+watershed_path <- compute_watersheds(
+  d8_pntr = system.file("extdata", "D8pointer.tif", package = "hydroModelling"),
+  pour_pts = system.file("extdata", "snappedpp.shp", package = "hydroModelling"),
+)
+watershed <- terra::rast(watershed_path)
+#plot_watersheds(watershed_path)
+```
+
+## Plot Watersheds with other data
+
+We'll visualize the watersheds, hillshade, and pour points.
+
+```{r}
+plot_watersheds(hillshade_path = hillshade_path, watershed_path = watershed_path, pour_points_path = system.file("extdata", "pourpoints.shp", package = "hydroModelling"))
+```
+
+# Discussion
+
+The hydroModelling package provides a straightforward workflow for processing DEM data and performing hydrological analyses. The functions demonstrated here allow users to load DEM data, apply thresholds, generate hillshades, fill depressions, compute flow accumulation and pointers, extract stream networks, and delineate watersheds. These capabilities are essential for hydrological studies and environmental modeling.
+
+# Conclusion
+The hydroModelling package simplifies hydrological data processing and analysis in R. By providing a suite of functions for common tasks, it helps researchers and practitioners efficiently conduct hydrological modeling and analysis.
+
+
